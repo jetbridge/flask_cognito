@@ -7,6 +7,7 @@ Authenticate users based on AWS Cognito JWT.
 # Initialization
 ```python3
 
+# configuration
 app.config.extend({
     'COGNITO_REGION': 'eu-central-1',
     'COGNITO_USERPOOL_ID': 'eu-central-1c3fea2',
@@ -19,19 +20,27 @@ app.config.extend({
     'COGNITO_JWT_HEADER_PREFIX': 'JWT',
 })
 
-CognitoAuth(app)
+
+# initialize extension
+cogauth = CognitoAuth(app)
+
+@cogauth.identity_handler
+def lookup_cognito_user(payload):
+    """Look up user in our database from Cognito JWT payload."""
+    return User.query.filter(User.cognito_username == payload['cognito:username']).one_or_none()
 ```
 
 # Check Authentication
 ```python3
-from flask_cognito import cognito_auth_required, cognito_user
+from flask_cognito import cognito_auth_required, current_user, current_cognito_jwt
 
 @route('/api/private')
 @cognito_auth_required
 def api_private():
     # user must have valid cognito auth token in header
     return jsonify({
-        'COGNITO_USERNAME': cognito_user['cognito:username'],   # from cognito pool
+        'cognito_username': current_cognito_jwt['cognito:username'],   # from cognito pool
+        'user_id': current_user.id,   # from your database
     })
 ```
 

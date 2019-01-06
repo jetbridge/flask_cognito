@@ -14,10 +14,10 @@ CONFIG_DEFAULTS = {
 }
 
 # user from pool
-cognito_user = LocalProxy(lambda: getattr(_request_ctx_stack.top, 'current_cognito_user', None))
+current_cognito_jwt = LocalProxy(lambda: getattr(_request_ctx_stack.top, 'cogauth_cognito_jwt', None))
 
 # unused - could be a way to add mapping of cognito user to application user
-cognito_identity = LocalProxy(lambda: getattr(_request_ctx_stack.top, 'current_cognito_identity', None))
+current_user = LocalProxy(lambda: getattr(_request_ctx_stack.top, 'cogauth_current_user', None))
 
 # access initialized cognito extension
 _cog = LocalProxy(lambda: current_app.extensions['cognito_auth'])
@@ -43,7 +43,7 @@ class CognitoAuth(object):
         if app is not None:
             self.init_app(app)
 
-    def init_app(self, app):
+    def init_app(self, app, identity_handler=None):
         for k, v in CONFIG_DEFAULTS.items():
             app.config.setdefault(k, v)
 
@@ -54,6 +54,8 @@ class CognitoAuth(object):
         self.jwt_header_name = self._get_required_config(app, 'COGNITO_JWT_HEADER_NAME')
         self.jwt_header_prefix = self._get_required_config(app, 'COGNITO_JWT_HEADER_PREFIX')
 
+        self.identity_callback = identity_handler
+
         # optional configuration
         self.check_expiration = app.config.get('COGNITO_CHECK_TOKEN_EXPIRATION', True)
 
@@ -61,6 +63,7 @@ class CognitoAuth(object):
         app.extensions['cognito_auth'] = self
 
         # handle CognitoJWTExceptions
+        # TODO: make customizable
         app.errorhandler(CognitoAuthError)(self._cognito_auth_error_handler)
 
     def _get_required_config(self, app, config_name):
@@ -68,6 +71,12 @@ class CognitoAuth(object):
         if not val:
             raise Exception(f"{config_name} not found in app configuration but it is required.")
         return val
+
+    def identity_handler(self, callback):
+        if self.identity_callback is not None:
+            raise Exception(f"Trying to override existing identity_handler on CognitoAuth. You should only set this once.")
+        self.identity_callback = callback
+        return callback
 
     def get_token(self):
         """Get token from request."""
@@ -87,13 +96,11 @@ class CognitoAuth(object):
 
         return parts[1]
 
-    def get_cognito_user(self, payload):
-        """Get descriptor of cognito user from JWT payload."""
-        return payload
-
-    def get_identity(self, cognito_user):
-        """Get application user identity from Cognito user descriptor."""
-        return None
+    def get_user(self, jwt_payload):
+        """Get application user identity from Cognito JWT payload."""
+        if not self.identity_callback:
+            return None
+        return self.identity_callback(jwt_payload)
 
     def _cognito_auth_error_handler(self, error):
         log.exception(error)
@@ -105,10 +112,7 @@ class CognitoAuth(object):
 
 
 def cognito_auth_required(fn):
-    """View decorator that requires a valid Cognito JWT token to be present in the request
-
-    :param realm: an optional realm
-    """
+    """View decorator that requires a valid Cognito JWT token to be present in the request."""
     @wraps(fn)
     def decorator(*args, **kwargs):
         _cognito_auth_required()
@@ -129,6 +133,7 @@ def _cognito_auth_required():
         raise CognitoAuthError('Authorization Required', f'Request does not contain a well-formed access token in {auth_header_name} beginning with "{auth_header_prefix}"')
 
     try:
+        # check if token is signed by userpool
         payload = cognito_jwt_decode(
             token=token,
             region=_cog.region,
@@ -140,5 +145,5 @@ def _cognito_auth_required():
         log.exception(e)
         raise CognitoAuthError('Invalid Cognito Authentication Token', str(e))
 
-    _request_ctx_stack.top.current_cognito_user = _cog.get_cognito_user(payload)
-    _request_ctx_stack.top.current_cognito_identity = _cog.get_identity(payload)
+    _request_ctx_stack.top.cogauth_cognito_jwt = payload
+    _request_ctx_stack.top.cogauth_current_user = _cog.get_user(payload)
