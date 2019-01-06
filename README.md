@@ -31,7 +31,7 @@ from flask_cognito import cognito_auth_required, cognito_user
 def api_private():
     # user must have valid cognito auth token in header
     return jsonify({
-        'COGNITO_USERNAME': cognito_user['username'],   # from cognito pool
+        'COGNITO_USERNAME': cognito_user['cognito:username'],   # from cognito pool
     })
 ```
 
