@@ -143,7 +143,7 @@ def _cognito_auth_required():
     if token is None:
         auth_header_name = _cog.jwt_header_name
         auth_header_prefix = _cog.jwt_header_prefix
-        raise CognitoAuthError('Authorization Required', f'Request does not contain a well-formed access token in {auth_header_name} beginning with "{auth_header_prefix}"')
+        raise CognitoAuthError('Authorization Required', f'Request does not contain a well-formed access token in the "{auth_header_name}" header beginning with "{auth_header_prefix}"')
 
     try:
         # check if token is signed by userpool
