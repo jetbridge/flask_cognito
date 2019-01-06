@@ -114,6 +114,15 @@ class CognitoAuth(object):
             ('description', error.description),
         ])), error.status_code, error.headers
 
+    def decode_token(self, token):
+        """Decode token."""
+        return cognito_jwt_decode(
+            token=token,
+            region=self.region,
+            app_client_id=self.app_client_id,
+            userpool_id=self.userpool_id,
+            testmode=not self.check_expiration,
+        )
 
 def cognito_auth_required(fn):
     """View decorator that requires a valid Cognito JWT token to be present in the request."""
@@ -138,13 +147,7 @@ def _cognito_auth_required():
 
     try:
         # check if token is signed by userpool
-        payload = cognito_jwt_decode(
-            token=token,
-            region=_cog.region,
-            app_client_id=_cog.app_client_id,
-            userpool_id=_cog.userpool_id,
-            testmode=not _cog.check_expiration,
-        )
+        payload = _cog.decode_token(token=token)
     except CognitoJWTException as e:
         log.exception(e)
         raise CognitoAuthError('Invalid Cognito Authentication Token', str(e))
