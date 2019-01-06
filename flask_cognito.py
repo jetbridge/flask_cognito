@@ -85,6 +85,11 @@ class CognitoAuth(object):
 
         # get token value from header
         auth_header_value = request.headers.get(auth_header_name)
+
+        if not auth_header_value:
+            # no auth header found
+            return None
+
         parts = auth_header_value.split()
 
         if parts[0].lower() != auth_header_prefix.lower():
@@ -105,7 +110,6 @@ class CognitoAuth(object):
     def _cognito_auth_error_handler(self, error):
         log.exception(error)
         return jsonify(OrderedDict([
-            ('status_code', error.status_code),
             ('error', error.error),
             ('description', error.description),
         ])), error.status_code, error.headers
