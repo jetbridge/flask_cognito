@@ -34,7 +34,7 @@ class CognitoAuthError(Exception):
         return f'CognitoAuthError: {self.error}'
 
     def __str__(self):
-        return f'{self.error} {self.description}'
+        return f'{self.error} - {self.description}'
 
 
 class CognitoAuth(object):
@@ -50,7 +50,6 @@ class CognitoAuth(object):
         # required configuration
         self.region = self._get_required_config(app, 'COGNITO_REGION')
         self.userpool_id = self._get_required_config(app, 'COGNITO_USERPOOL_ID')
-        self.app_client_id = self._get_required_config(app, 'COGNITO_APP_CLIENT_ID')
         self.jwt_header_name = self._get_required_config(app, 'COGNITO_JWT_HEADER_NAME')
         self.jwt_header_prefix = self._get_required_config(app, 'COGNITO_JWT_HEADER_PREFIX')
 
@@ -58,6 +57,7 @@ class CognitoAuth(object):
 
         # optional configuration
         self.check_expiration = app.config.get('COGNITO_CHECK_TOKEN_EXPIRATION', True)
+        self.app_client_id = app.config.get('COGNITO_APP_CLIENT_ID')
 
         # save for localproxy
         app.extensions['cognito_auth'] = self
@@ -150,7 +150,7 @@ def _cognito_auth_required():
         payload = _cog.decode_token(token=token)
     except CognitoJWTException as e:
         log.exception(e)
-        raise CognitoAuthError('Invalid Cognito Authentication Token', str(e))
+        raise CognitoAuthError('Invalid Cognito Authentication Token', str(e)) from e
 
     _request_ctx_stack.top.cogauth_cognito_jwt = payload
     _request_ctx_stack.top.cogauth_current_user = _cog.get_user(payload)
