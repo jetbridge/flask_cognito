@@ -6,7 +6,6 @@ Authenticate users based on AWS Cognito JWT.
 
 # Initialization
 ```python3
-
 # configuration
 app.config.extend({
     'COGNITO_REGION': 'eu-central-1',
@@ -21,6 +20,7 @@ app.config.extend({
 
 
 # initialize extension
+from flask_cognito import CognitoAuth
 cogauth = CognitoAuth(app)
 
 @cogauth.identity_handler
