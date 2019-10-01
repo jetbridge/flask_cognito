@@ -3,6 +3,7 @@ from functools import wraps
 from flask import _request_ctx_stack, current_app, jsonify, request
 from werkzeug.local import LocalProxy
 from cognitojwt import CognitoJWTException, decode as cognito_jwt_decode
+from jose.exceptions import JWTError
 import logging
 
 log = logging.getLogger(__name__)
@@ -116,13 +117,16 @@ class CognitoAuth(object):
 
     def decode_token(self, token):
         """Decode token."""
-        return cognito_jwt_decode(
-            token=token,
-            region=self.region,
-            app_client_id=self.app_client_id,
-            userpool_id=self.userpool_id,
-            testmode=not self.check_expiration,
-        )
+        try:
+            return cognito_jwt_decode(
+                token=token,
+                region=self.region,
+                app_client_id=self.app_client_id,
+                userpool_id=self.userpool_id,
+                testmode=not self.check_expiration,
+            )
+        except (ValueError, JWTError):
+            raise CognitoJWTException('Malformed Authentication Token')
 
 def cognito_auth_required(fn):
     """View decorator that requires a valid Cognito JWT token to be present in the request."""
