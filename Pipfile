@@ -7,6 +7,7 @@ name = "pypi"
 "cognitojwt" = ">=1.1.0"
 Flask = "*"
 werkzeug = "*"
+requests = "*"
 
 [dev-packages]
 

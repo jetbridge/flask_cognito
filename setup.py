@@ -5,7 +5,7 @@ with open('README.md') as f:
 
 setup(
     name='Flask-Cognito',
-    version='1.12',
+    version='1.14',
     url='https://github.com/jetbridge/flask_cognito',
     license='ABRMS',
     author='Mischa Spiegelmock',
@@ -25,6 +25,7 @@ setup(
         # 'cognitojwt[sync]>=1.1.0',
         'cognitojwt>=1.1.0',
         'werkzeug',
+        'requests',
     ],
     keywords='flask aws cognito jwt authentication auth serverless',
     classifiers=[
