@@ -75,7 +75,8 @@ class CognitoAuth(object):
 
     def identity_handler(self, callback):
         if self.identity_callback is not None:
-            raise Exception(f"Trying to override existing identity_handler on CognitoAuth. You should only set this once.")
+            raise Exception(
+                f"Trying to override existing identity_handler on CognitoAuth. You should only set this once.")
         self.identity_callback = callback
         return callback
 
@@ -94,7 +95,8 @@ class CognitoAuth(object):
         parts = auth_header_value.split()
 
         if parts[0].lower() != auth_header_prefix.lower():
-            raise CognitoAuthError('Invalid Cognito JWT header', f'Unsupported authorization type. Header prefix "{parts[0].lower()}" does not match "{auth_header_prefix.lower()}"')
+            raise CognitoAuthError('Invalid Cognito JWT header',
+                                   f'Unsupported authorization type. Header prefix "{parts[0].lower()}" does not match "{auth_header_prefix.lower()}"')
         elif len(parts) == 1:
             raise CognitoAuthError('Invalid Cognito JWT header', 'Token missing')
         elif len(parts) > 2:
@@ -128,13 +130,45 @@ class CognitoAuth(object):
         except (ValueError, JWTError):
             raise CognitoJWTException('Malformed Authentication Token')
 
+
 def cognito_auth_required(fn):
     """View decorator that requires a valid Cognito JWT token to be present in the request."""
+
     @wraps(fn)
     def decorator(*args, **kwargs):
         _cognito_auth_required()
         return fn(*args, **kwargs)
+
     return decorator
+
+
+def cognito_check_groups(groups: list):
+    def decorator(function):
+        def wrapper(*args, **kwargs):
+            _cognito_check_groups(groups)
+            return function(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
+def _cognito_check_groups(groups: list):
+    """
+        Does the actual work of verifying the user group to restrict access to some resources.
+        :param groups a list with the name of the groups of Cognito Identity Pool
+        :raise an exception if there is no group
+    """
+
+    if 'cognito:groups' not in current_cognito_jwt:
+        raise CognitoAuthError('Not Authorized',
+                            'User doesn\'t have access to this resource',
+                            status_code=403)
+
+    if all([i not in current_cognito_jwt['cognito:groups'] for i in groups]):
+        raise CognitoAuthError('Not Authorized',
+                            'User doesn\'t have access to this resource',
+                            status_code=403)
 
 
 def _cognito_auth_required():
@@ -147,7 +181,8 @@ def _cognito_auth_required():
     if token is None:
         auth_header_name = _cog.jwt_header_name
         auth_header_prefix = _cog.jwt_header_prefix
-        raise CognitoAuthError('Authorization Required', f'Request does not contain a well-formed access token in the "{auth_header_name}" header beginning with "{auth_header_prefix}"')
+        raise CognitoAuthError('Authorization Required',
+                               f'Request does not contain a well-formed access token in the "{auth_header_name}" header beginning with "{auth_header_prefix}"')
 
     try:
         # check if token is signed by userpool
