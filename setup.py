@@ -5,7 +5,7 @@ with open('README.md') as f:
 
 setup(
     name='Flask-Cognito',
-    version='1.14',
+    version='1.15',
     url='https://github.com/jetbridge/flask_cognito',
     license='ABRMS',
     author='Mischa Spiegelmock',
