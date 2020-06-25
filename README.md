@@ -44,6 +44,19 @@ def api_private():
     })
 ```
 
+# Restrict access by Cognito Group
+```python3
+from flask_cognito import cognito_auth_required, current_user, current_cognito_jwt
+
+@route('/api/foo')
+@cognito_auth_required
+@cognito_group_permissions(['admin','developer'])
+def api_private():
+    # user must belongs to "admin" or "developer" groups
+    return jsonify({
+        'foo': "bar"
+    })
+```
 
 ### Acknowledgements
 * Uses [cognitojwt](https://github.com/borisrozumnuk/cognitojwt) at its core.
