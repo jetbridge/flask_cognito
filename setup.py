@@ -7,7 +7,7 @@ setup(
     name='Flask-Cognito',
     version='1.14',
     url='https://github.com/jetbridge/flask_cognito',
-    license='ABRMS',
+    license='MIT',
     author='Mischa Spiegelmock',
     author_email='mischa@mvstg.biz',
     description='Authenticate users to Cognito user pool via JWT.',
