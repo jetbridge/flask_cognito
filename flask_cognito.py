@@ -188,7 +188,7 @@ def _cognito_auth_required():
         # check if token is signed by userpool
         payload = _cog.decode_token(token=token)
     except CognitoJWTException as e:
-        log.info('Authentication Failure', exc_info=error)
+        log.info('Authentication Failure', exc_info=e)
         raise CognitoAuthError('Invalid Cognito Authentication Token', str(e)) from e
 
     _request_ctx_stack.top.cogauth_cognito_jwt = payload
