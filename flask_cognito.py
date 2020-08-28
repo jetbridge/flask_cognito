@@ -111,7 +111,7 @@ class CognitoAuth(object):
         return self.identity_callback(jwt_payload)
 
     def _cognito_auth_error_handler(self, error):
-        log.exception(error)
+        log.info('Authentication Failure', exc_info=error)
         return jsonify(OrderedDict([
             ('error', error.error),
             ('description', error.description),
@@ -188,7 +188,7 @@ def _cognito_auth_required():
         # check if token is signed by userpool
         payload = _cog.decode_token(token=token)
     except CognitoJWTException as e:
-        log.exception(e)
+        log.info('Authentication Failure', exc_info=error)
         raise CognitoAuthError('Invalid Cognito Authentication Token', str(e)) from e
 
     _request_ctx_stack.top.cogauth_cognito_jwt = payload
