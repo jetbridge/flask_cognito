@@ -94,6 +94,11 @@ class CognitoAuth(object):
 
         parts = auth_header_value.split()
 
+        if not auth_header_prefix:
+            if len(parts) > 1:
+                raise CognitoAuthError('Invalid Cognito JWT Header', 'Token contains spaces')
+            return auth_header_value
+
         if parts[0].lower() != auth_header_prefix.lower():
             raise CognitoAuthError('Invalid Cognito JWT header',
                                    f'Unsupported authorization type. Header prefix "{parts[0].lower()}" does not match "{auth_header_prefix.lower()}"')
