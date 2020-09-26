@@ -88,6 +88,37 @@ class TestHeaderPrefix(TestCase):
     self.assertIsNone(result)
 
 
-    
+  def test_group_permissions_decorator(self):
+    flask_cognito.current_cognito_jwt = {'cognito:groups': ['admin', 'other']}
+    @flask_cognito.cognito_group_permissions(['admin'])
+    def some_func():
+      return True
+    self.assertTrue(some_func())
 
+  def test_group_permissions_fail_if_not_in_group(self):
+    flask_cognito.current_cognito_jwt = {'cognito:groups': ['other']}
+    @flask_cognito.cognito_group_permissions(['admin'])
+    def some_func():
+      return True
+    self.assertRaises(flask_cognito.CognitoAuthError, some_func)
 
+  def test_group_permissions_fail_if_no_groups(self):
+    flask_cognito.current_cognito_jwt = {'cognito:groups': []}
+    @flask_cognito.cognito_group_permissions(['admin'])
+    def some_func():
+      return True
+    self.assertRaises(flask_cognito.CognitoAuthError, some_func)
+
+  def test_group_permissions_fail_if_groups_is_none(self):
+    flask_cognito.current_cognito_jwt = {'cognito:groups': None}
+    @flask_cognito.cognito_group_permissions(['admin'])
+    def some_func():
+      return True
+    self.assertRaises(flask_cognito.CognitoAuthError, some_func) 
+
+  def test_group_permissions_fail_if_no_group_attribute(self):
+    flask_cognito.current_cognito_jwt = {'cognito:name': 'Something'}
+    @flask_cognito.cognito_group_permissions(['admin'])
+    def some_func():
+      return True
+    self.assertRaises(flask_cognito.CognitoAuthError, some_func)

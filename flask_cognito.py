@@ -146,7 +146,6 @@ def cognito_auth_required(fn):
 
     return decorator
 
-
 def cognito_check_groups(groups: list):
     def decorator(function):
         def wrapper(*args, **kwargs):
@@ -157,6 +156,8 @@ def cognito_check_groups(groups: list):
 
     return decorator
 
+## This adds an alias to the above function to resolve issue #16    
+cognito_group_permissions = cognito_check_groups
 
 def _cognito_check_groups(groups: list):
     """
@@ -165,7 +166,7 @@ def _cognito_check_groups(groups: list):
         :raise an exception if there is no group
     """
 
-    if 'cognito:groups' not in current_cognito_jwt:
+    if 'cognito:groups' not in current_cognito_jwt or current_cognito_jwt['cognito:groups'] is None:
         raise CognitoAuthError('Not Authorized',
                             'User doesn\'t have access to this resource',
                             status_code=403)
