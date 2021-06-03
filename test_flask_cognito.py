@@ -122,3 +122,15 @@ class TestHeaderPrefix(TestCase):
     def some_func():
       return True
     self.assertRaises(flask_cognito.CognitoAuthError, some_func)
+
+  def test_identity_handler_late_init(self):
+    ca = flask_cognito.CognitoAuth()
+
+    # This throws an exception if self.identity_callback is not defined yet,
+    # particularly if the property is defined by init_app which may not have
+    # been called yet.
+    @ca.identity_handler
+    def handler(payload):
+      return None
+
+    self.assertEqual(ca.identity_callback, handler)
