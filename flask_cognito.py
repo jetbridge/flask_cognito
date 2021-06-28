@@ -150,6 +150,7 @@ def cognito_auth_required(fn):
 
 def cognito_check_groups(groups: list):
     def decorator(function):
+        @wraps(function)
         def wrapper(*args, **kwargs):
             _cognito_check_groups(groups)
             return function(*args, **kwargs)
