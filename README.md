@@ -7,7 +7,7 @@ Authenticate users based on AWS Cognito JWT.
 # Initialization
 ```python3
 # configuration
-app.config.extend({
+app.config.update({
     'COGNITO_REGION': 'eu-central-1',
     'COGNITO_USERPOOL_ID': 'eu-central-1c3fea2',
 
