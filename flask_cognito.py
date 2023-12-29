@@ -1,6 +1,6 @@
 from collections import OrderedDict
 from functools import wraps
-from flask import _request_ctx_stack, current_app, jsonify, request
+from flask import g, current_app, jsonify, request
 from werkzeug.local import LocalProxy
 from cognitojwt import CognitoJWTException, decode as cognito_jwt_decode
 from jose.exceptions import JWTError
@@ -15,10 +15,10 @@ CONFIG_DEFAULTS = {
 }
 
 # user from pool
-current_cognito_jwt = LocalProxy(lambda: getattr(_request_ctx_stack.top, 'cogauth_cognito_jwt', None))
+current_cognito_jwt = LocalProxy(lambda: getattr(g, 'cogauth_cognito_jwt', None))
 
 # unused - could be a way to add mapping of cognito user to application user
-current_user = LocalProxy(lambda: getattr(_request_ctx_stack.top, 'cogauth_current_user', None))
+current_user = LocalProxy(lambda: getattr(g, 'cogauth_current_user', None))
 
 # access initialized cognito extension
 _cog = LocalProxy(lambda: current_app.extensions['cognito_auth'])
@@ -200,5 +200,5 @@ def _cognito_auth_required():
         log.info('Authentication Failure', exc_info=e)
         raise CognitoAuthError('Invalid Cognito Authentication Token', str(e)) from e
 
-    _request_ctx_stack.top.cogauth_cognito_jwt = payload
-    _request_ctx_stack.top.cogauth_current_user = _cog.get_user(payload)
+    g.cogauth_cognito_jwt = payload
+    g.cogauth_current_user = _cog.get_user(payload)
