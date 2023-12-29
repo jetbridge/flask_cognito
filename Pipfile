@@ -8,6 +8,7 @@ name = "pypi"
 Flask = "*"
 werkzeug = "*"
 requests = "*"
+rsa = "*"
 
 [dev-packages]
 
