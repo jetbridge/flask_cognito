@@ -88,7 +88,10 @@ class CognitoAuth(object):
         auth_header_prefix = _cog.jwt_header_prefix
 
         # get token value from header
-        auth_header_value = request.headers.get(auth_header_name)
+        if auth_header_name == 'Cookie':
+            return request.cookies.get('session_token')
+        else:
+            auth_header_value = request.headers.get(auth_header_name)
 
         if not auth_header_value:
             # no auth header found
