@@ -54,12 +54,12 @@ class CognitoAuth(object):
         self.region = self._get_required_config(app, 'COGNITO_REGION')
         self.userpool_id = self._get_required_config(app, 'COGNITO_USERPOOL_ID')
         self.jwt_header_name = self._get_required_config(app, 'COGNITO_JWT_HEADER_NAME')
-        self.jwt_header_prefix = self._get_required_config(app, 'COGNITO_JWT_HEADER_PREFIX')
 
         self.identity_callback = identity_handler
 
         # optional configuration
-        self.check_expiration = app.config.get('COGNITO_CHECK_TOKEN_EXPIRATION', True)
+        self.check_expiration = app.config.get('COGNITO_CHECK_TOKEN_EXPIRATION')
+        self.jwt_header_prefix = app.config.get('COGNITO_JWT_HEADER_PREFIX')
         self.app_client_id = app.config.get('COGNITO_APP_CLIENT_ID')
 
         # save for localproxy
